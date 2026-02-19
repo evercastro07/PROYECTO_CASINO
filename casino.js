@@ -19,7 +19,19 @@ const PALOS ["♠", "♥", "♦", "♣"]
 
 let baraja = []
 
-Function crearbaraja() {}
-baraja = []
-for (let palo of PALOS)
-    for (let carta of CARTAS)
+function crearBaraja() {
+  baraja = [];
+
+  for (let palo of PALOS) {
+    for (let carta of CARTAS) {
+      baraja.push({
+        nombre: carta.nombre,
+        palo: palo,
+        valor: carta.valor
+      });
+    }
+  }
+}
+crearBaraja();
+console.log(baraja);
+
