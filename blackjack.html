@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blackjack Simplificado</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #2c3e50;
+        color: #ecf0f1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 50px;
+    }
+
+    #container {
+        display: flex;
+        gap: 50px;
+    }
+
+    #game, #rules {
+        background: #34495e;
+        padding: 20px;
+        border-radius: 10px;
+        width: 300px;
+    }
+
+    h1, h2, h3 {
+        text-align: center;
+        color: #e74c3c;
+    }
+
+    button {
+        padding: 10px 20px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        background-color: #e74c3c;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background-color: #c0392b;
+    }
+
+    .cards {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 10px 0;
+        justify-content: center;
+    }
+
+    .card {
+        width: 40px;
+        height: 60px;
+        background: #ecf0f1;
+        color: #2c3e50;
+        margin: 3px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 18px;
+        box-shadow: 1px 1px 5px #00000070;
+        transition: transform 0.2s;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    #message {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    #rules p {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+</style>
+</head>
+<body>
+
+<div id="container">
+    <!-- Juego -->
+    <div id="game">
+        <h1>Blackjack</h1>
+
+        <h3>Jugador</h3>
+        <div id="player-cards" class="cards"></div>
+        <div>Total: <span id="player-total">0</span></div>
+
+        <h3>Banca</h3>
+        <div id="dealer-cards" class="cards"></div>
+        <div>Total: <span id="dealer-total">0</span></div>
+
+        <div style="text-align:center;">
+            <button id="hit">Pedir carta</button>
+            <button id="stand">Plantarse</button>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <!-- Reglas -->
+    <div id="rules">
+        <h2>Reglas</h2>
+        <p>Bienvenido al Blackjack simplificado:</p>
+        <ul>
+            <li>Usamos cartas del 1 al 10 (4 palos).</li>
+            <li>El objetivo es acercarse a 21 sin pasarse.</li>
+            <li>El jugador puede "Pedir carta" o "Plantarse".</li>
+            <li>La banca juega automáticamente y se planta en 17 o más.</li>
+            <li>Si superas 21 pierdes automáticamente.</li>
+            <li>Gana quien esté más cerca de 21 sin pasarse.</li>
+            <li>Empates se muestran como "Empate".</li>
+        </ul>
+        <p>¡Diviértete y aprende la lógica de los casinos!</p>
+    </div>
+</div>
+
+<script>
+    // Crear baraja reducida (1-10, 4 palos)
+    let baraja = [];
+    for (let i = 1; i <= 10; i++) {
+        for (let j = 0; j < 4; j++) {
+            baraja.push(i);
+        }
+    }
+
+    // Barajar
+    function barajar(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+    barajar(baraja);
+
+    // Variables del juego
+    let playerCards = [];
+    let dealerCards = [];
+    let playerTotal = 0;
+    let dealerTotal = 0;
+    let gameOver = false;
+
+    const playerCardsDiv = document.getElementById('player-cards');
+    const dealerCardsDiv = document.getElementById('dealer-cards');
+    const playerTotalSpan = document.getElementById('player-total');
+    const dealerTotalSpan = document.getElementById('dealer-total');
+    const messageDiv = document.getElementById('message');
+    const hitBtn = document.getElementById('hit');
+    const standBtn = document.getElementById('stand');
+
+    function robarCarta(array) {
+        return array.pop();
+    }
+
+    function mostrarCartas(div, cartas) {
+        div.innerHTML = '';
+        cartas.forEach(c => {
+            let card = document.createElement('div');
+            card.classList.add('card');
+            card.textContent = c;
+            div.appendChild(card);
+        });
+    }
+
+    function actualizarDisplay() {
+        mostrarCartas(playerCardsDiv, playerCards);
+        mostrarCartas(dealerCardsDiv, dealerCards);
+        playerTotalSpan.textContent = playerTotal;
+        dealerTotalSpan.textContent = dealerTotal;
+    }
+
+    function revisarGanador() {
+        if (playerTotal > 21) {
+            messageDiv.textContent = "¡Te pasaste! Gana la banca.";
+            gameOver = true;
+        }
+    }
+
+    function turnoBanca() {
+        while (dealerTotal < 17) {
+            let carta = robarCarta(baraja);
+            dealerCards.push(carta);
+            dealerTotal += carta;
+            actualizarDisplay();
+        }
+
+        if (dealerTotal > 21) {
+            messageDiv.textContent = "¡La banca se pasó! Ganas tú.";
+        } else if (dealerTotal > playerTotal) {
+            messageDiv.textContent = "Gana la banca.";
+        } else if (dealerTotal < playerTotal) {
+            messageDiv.textContent = "¡Ganas tú!";
+        } else {
+            messageDiv.textContent = "Empate.";
+        }
+        gameOver = true;
+    }
+
+    // Inicio del juego: repartir 2 cartas al jugador
+    for (let i = 0; i < 2; i++) {
+        let carta = robarCarta(baraja);
+        playerCards.push(carta);
+        playerTotal += carta;
+    }
+    actualizarDisplay();
+    revisarGanador();
+
+    // Botón "Pedir carta"
+    hitBtn.addEventListener('click', () => {
+        if (!gameOver) {
+            let carta = robarCarta(baraja);
+            playerCards.push(carta);
+            playerTotal += carta;
+            actualizarDisplay();
+            revisarGanador();
+        }
+    });
+
+    // Botón "Plantarse"
+    standBtn.addEventListener('click', () => {
+        if (!gameOver) {
+            turnoBanca();
+        }
+    });
+</script>
+
+</body>
+</html>
